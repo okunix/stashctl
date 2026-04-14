@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"log"
 
@@ -17,8 +18,10 @@ var rootCmd = &cobra.Command{
 		serverAddr := viper.GetString("server")
 		username := viper.GetString("username")
 		password := viper.GetString("password")
+
 		var client *stash.Client
 		var err error
+
 		if username != "" || password != "" {
 			client, err = stash.NewClient(
 				stash.WithAddr(serverAddr),
@@ -27,16 +30,16 @@ var rootCmd = &cobra.Command{
 		} else {
 			client, err = stash.NewClient(stash.WithAddr(serverAddr))
 		}
+
 		if err != nil {
 			return err
 		}
+
 		if err := client.Ping(ctx); err != nil {
 			return errors.New("failed to reach server")
 		}
+		cmd.SetContext(context.WithValue(cmd.Context(), "stash-client", client))
 		return nil
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-
 	},
 }
 
