@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/okunix/stash-sdk/stash/v1"
@@ -44,8 +45,20 @@ var getStashByIDCmd = &cobra.Command{
 }
 
 var listStashesCmd = &cobra.Command{
-	Use:   "list [member|maintainer]",
-	Args:  cobra.MaximumNArgs(1),
+	Use:     "list [member|maintainer]",
+	Aliases: []string{"ls"},
+	Args: func(cmd *cobra.Command, args []string) error {
+		if err := cobra.MaximumNArgs(1)(cmd, args); err != nil {
+			return err
+		}
+		if len(args) == 0 {
+			return nil
+		}
+		if args[0] != "member" && args[0] != "maintainer" {
+			return errors.New("invalid list argument see help")
+		}
+		return nil
+	},
 	Short: "list stashes",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
@@ -127,9 +140,10 @@ var createStashCmd = &cobra.Command{
 }
 
 var deleteStashCmd = &cobra.Command{
-	Use:   "delete ID",
-	Short: "delete stash",
-	Args:  cobra.ExactArgs(1),
+	Use:     "delete ID",
+	Aliases: []string{"rm"},
+	Short:   "delete stash",
+	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
 		client := mustGetStashClient(ctx)
