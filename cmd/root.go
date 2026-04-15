@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"errors"
-	"log"
 
 	"github.com/okunix/stash-sdk/stash/v1"
 	"github.com/spf13/cobra"
@@ -46,6 +45,7 @@ var rootCmd = &cobra.Command{
 var cfgFile string
 
 func init() {
+	rootCmd.SilenceErrors = true
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "set different config file")
 }
 
@@ -69,11 +69,11 @@ func Execute() {
 		}
 		if err := viper.ReadInConfig(); err != nil {
 			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-				log.Fatal(err.Error())
+				errExit(err)
 			}
 		}
 	})
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err.Error())
+		errExit(err)
 	}
 }
