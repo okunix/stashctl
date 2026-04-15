@@ -30,3 +30,23 @@ func errExit(err error) {
 	fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
 	os.Exit(1)
 }
+
+func printStashResponse(resp *stash.StashResponse) error {
+	fmt.Printf("ID:\t%s\n", resp.ID)
+	fmt.Printf("Name:\t%s\n", resp.Name)
+	fmt.Printf("MaintainerID:\t%s\n", resp.MaintainerID)
+	fmt.Printf("CreatedAt:\t%s\n", resp.CreatedAt)
+	fmt.Printf("Locked:\t%v\n", resp.Locked)
+	if resp.Description != nil {
+		fmt.Printf("Description:\t%s\n", *resp.Description)
+	}
+	return nil
+}
+
+func printStashResponseList(resp []stash.StashResponse) error {
+	for _, v := range resp {
+		printStashResponse(&v)
+		fmt.Println()
+	}
+	return nil
+}

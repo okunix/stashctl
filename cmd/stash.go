@@ -17,9 +17,15 @@ func init() {
 	stashCmd.AddCommand(getStashByIDCmd)
 	stashCmd.AddCommand(lockStashCmd)
 	stashCmd.AddCommand(unlockStashCmd)
+	stashCmd.AddCommand(deleteStashCmd)
+	stashCmd.AddCommand(listStashesCmd)
 
 	stashCmd.AddCommand(createStashCmd)
 	createStashCmd.Flags().StringP("description", "d", "", "description of a stash")
+
+	stashCmd.AddCommand(updateStashCmd)
+	updateStashCmd.Flags().StringP("name", "n", "", "name of a stash")
+	updateStashCmd.Flags().StringP("description", "d", "", "description of a stash")
 }
 
 var getStashByIDCmd = &cobra.Command{
@@ -33,7 +39,42 @@ var getStashByIDCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Printf("%+v\n", stash)
+		return printStashResponse(stash)
+	},
+}
+
+var listStashesCmd = &cobra.Command{
+	Use:   "list [member|maintainer]",
+	Args:  cobra.MaximumNArgs(1),
+	Short: "list stashes",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := cmd.Context()
+		client := mustGetStashClient(ctx)
+		stashes, err := client.ListStashes(ctx)
+		if err != nil {
+			return err
+		}
+		if len(args) == 0 {
+			if len(stashes.Maintainer) > 0 {
+				fmt.Printf("Maintainer\n----------\n")
+				printStashResponseList(stashes.Maintainer)
+			}
+			fmt.Println()
+			if len(stashes.Member) > 0 {
+				fmt.Printf("Member\n------\n")
+				printStashResponseList(stashes.Member)
+			}
+			return nil
+		}
+		if args[0] == "member" {
+			printStashResponseList(stashes.Member)
+			return nil
+		}
+
+		if args[0] == "maintainer" {
+			printStashResponseList(stashes.Maintainer)
+			return nil
+		}
 		return nil
 	},
 }
@@ -82,5 +123,43 @@ var createStashCmd = &cobra.Command{
 			Password:    password,
 			Description: description,
 		})
+	},
+}
+
+var deleteStashCmd = &cobra.Command{
+	Use:   "delete ID",
+	Short: "delete stash",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := cmd.Context()
+		client := mustGetStashClient(ctx)
+		stashID := args[0]
+		return client.DeleteStash(ctx, stashID)
+	},
+}
+
+var updateStashCmd = &cobra.Command{
+	Use:   "update ID [-n NAME] [-d DESCRIPTION]",
+	Short: "update stash",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := cmd.Context()
+		client := mustGetStashClient(ctx)
+		stashID := args[0]
+
+		var name *string
+		nameStr, _ := cmd.Flags().GetString("name")
+		if nameStr != "" {
+			name = &nameStr
+		}
+
+		var desc *string
+		descStr, _ := cmd.Flags().GetString("description")
+		if descStr != "" {
+			desc = &descStr
+		}
+
+		req := stash.UpdateStashRequest{Name: name, Description: desc}
+		return client.UpdateStash(ctx, stashID, req)
 	},
 }
