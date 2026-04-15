@@ -3,23 +3,27 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/okunix/stash-sdk/stash/v1"
 	"github.com/spf13/cobra"
 )
 
 var stashCmd = &cobra.Command{
-	Use:   "stash",
+	Use:   "stash COMMAND",
 	Short: "manage stashes",
 }
 
 func init() {
 	rootCmd.AddCommand(stashCmd)
 	stashCmd.AddCommand(getStashByIDCmd)
-	stashCmd.AddCommand(lockStash)
-	stashCmd.AddCommand(unlockStash)
+	stashCmd.AddCommand(lockStashCmd)
+	stashCmd.AddCommand(unlockStashCmd)
+
+	stashCmd.AddCommand(createStashCmd)
+	createStashCmd.Flags().StringP("description", "d", "", "description of a stash")
 }
 
 var getStashByIDCmd = &cobra.Command{
-	Use:   "get",
+	Use:   "get ID",
 	Short: "get stash by id",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -34,8 +38,8 @@ var getStashByIDCmd = &cobra.Command{
 	},
 }
 
-var unlockStash = &cobra.Command{
-	Use:   "unlock",
+var unlockStashCmd = &cobra.Command{
+	Use:   "unlock ID PASSWORD",
 	Short: "unlock stash",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -47,8 +51,8 @@ var unlockStash = &cobra.Command{
 	},
 }
 
-var lockStash = &cobra.Command{
-	Use:   "lock",
+var lockStashCmd = &cobra.Command{
+	Use:   "lock ID",
 	Short: "lock stash",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -56,5 +60,27 @@ var lockStash = &cobra.Command{
 		client := mustGetStashClient(ctx)
 		stashID := args[0]
 		return client.Lock(ctx, stashID)
+	},
+}
+
+var createStashCmd = &cobra.Command{
+	Use:   "create NAME PASSWORD [-d DESCRIPTION]",
+	Short: "create stash",
+	Args:  cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := cmd.Context()
+		name := args[0]
+		password := args[1]
+		var description *string
+		descriptionStr, err := cmd.Flags().GetString("description")
+		if err == nil {
+			description = &descriptionStr
+		}
+		client := mustGetStashClient(ctx)
+		return client.CreateStash(ctx, stash.CreateStashRequest{
+			Name:        name,
+			Password:    password,
+			Description: description,
+		})
 	},
 }

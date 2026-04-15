@@ -27,6 +27,6 @@ func mustGetStashClient(ctx context.Context) *stash.Client {
 }
 
 func errExit(err error) {
-	fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+	fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
 	os.Exit(1)
 }
