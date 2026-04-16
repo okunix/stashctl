@@ -50,3 +50,22 @@ func printStashResponseList(resp []stash.StashResponse) error {
 	}
 	return nil
 }
+
+func printUserResponse(resp *stash.UserResponse) error {
+	fmt.Printf("ID:\t%s\n", resp.ID)
+	fmt.Printf("Username:\t%s\n", resp.Username)
+	fmt.Printf("Locked:\t%v\n", resp.Locked)
+	fmt.Printf("CreatedAt:\t%s\n", resp.CreatedAt)
+	if resp.ExpiredAt != nil {
+		fmt.Printf("ExpiredAt:\t%s\n", resp.CreatedAt)
+	}
+	return nil
+}
+
+func printUserResponseList(resp []*stash.UserResponse) error {
+	for _, v := range resp {
+		printUserResponse(v)
+		fmt.Println()
+	}
+	return nil
+}
