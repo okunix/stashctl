@@ -9,8 +9,9 @@ import (
 )
 
 var stashCmd = &cobra.Command{
-	Use:   "stash COMMAND",
-	Short: "manage stashes",
+	Use:     "stash COMMAND",
+	Aliases: []string{"stashes"},
+	Short:   "manage stashes",
 }
 
 func init() {
